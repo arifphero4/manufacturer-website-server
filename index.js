@@ -33,6 +33,7 @@ async function run() {
       res.send(tools);
     });
 
+    // GET SINGLE TOOL
     app.get("/tool/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectID(id) };
@@ -50,7 +51,12 @@ async function run() {
         $set: user,
       };
       const result = await userCollection.updateOne(filter, updateDoc, options);
-      res.send(result);
+      const token = jwt.sign(
+        { email: email },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "1h" }
+      );
+      res.send({ result, token });
     });
   } finally {
     // await client.close();

@@ -22,6 +22,7 @@ async function run() {
   try {
     await client.connect();
     const toolCollection = client.db("manufacturer_admin").collection("tools");
+    const userCollection = client.db("manufacturer_admin").collection("users");
 
     //http://localhost:5000/tool
     app.get("/tool", async (req, res) => {

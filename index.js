@@ -39,7 +39,7 @@ async function run() {
       res.send(tool);
     });
 
-    //user
+    //user api
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;

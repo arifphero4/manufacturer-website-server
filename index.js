@@ -5,6 +5,8 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const { ObjectID } = require("bson");
+const query = require("express/lib/middleware/query");
+const ObjectId = require("mongodb").ObjectId;
 const port = process.env.PORT || 5000;
 
 //middleware
@@ -39,6 +41,9 @@ async function run() {
     await client.connect();
     const toolCollection = client.db("manufacturer_admin").collection("tools");
     const userCollection = client.db("manufacturer_admin").collection("users");
+    const orderCollection = client
+      .db("manufacturer_admin")
+      .collection("orders");
 
     //http://localhost:5000/tool
     app.get("/tool", async (req, res) => {
@@ -62,6 +67,18 @@ async function run() {
       res.send(users);
     });
 
+    //post order
+    app.post("/order", async (req, res) => {
+      const order = req.body;
+      const result = await orderCollection.insertOne(order);
+      res.send(result);
+    });
+    //get order
+    app.get("/order", async (req, res) => {
+      const orders = await orderCollection.find().toArray();
+
+      res.send(orders);
+    });
     //user api
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
@@ -75,7 +92,7 @@ async function run() {
       const token = jwt.sign(
         { email: email },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "7d" }
       );
       res.send({ result, token });
     });
@@ -88,23 +105,29 @@ async function run() {
       res.send({ admin: isAdmin });
     });
 
-    // user admin
     app.put("/user/admin/:email", async (req, res) => {
-      const email = req.params.email;
-      const requester = req.decoded.email;
-      const requesterAccount = await userCollection.findOne({
-        email: requester,
-      });
-      if (requesterAccount.role === "admin") {
-        const filter = { email: email };
-        const updateDoc = {
-          $set: { role: "admin" },
-        };
-        const result = await userCollection.updateOne(filter, updateDoc);
-        res.send(result);
-      } else {
-        res.status(403).send({ message: "forbiden" });
-      }
+      const user = req.body;
+      const filter = { email: user.email };
+      const updateDoc = { $set: { role: "admin" } };
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.json(result);
+    });
+
+    // delete order
+    app.delete("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
+      console.log(result);
+      res.json(result);
+    });
+    // delete user
+    app.delete("/user/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
+      console.log(result);
+      res.json(result);
     });
   } finally {
     // await client.close();

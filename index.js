@@ -13,6 +13,11 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+/* 
+Emaill: admin@hero.com
+Password : admin1234
+*/
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.elwai.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
@@ -66,6 +71,8 @@ async function run() {
       const users = await userCollection.find().toArray();
       res.send(users);
     });
+
+    /* order api */
 
     //post order
     app.post("/order", async (req, res) => {
